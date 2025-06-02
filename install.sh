@@ -80,7 +80,7 @@ echo "\n📦 Service Status:"
 if systemctl is-active --quiet wg-mss.service; then
   echo "${GREEN}✅ wg-mss.service is active${NC}"
 else
-  echo "${YELLOW}ℹ️ wg-mss.service is currently inactive (normal for oneshot)."
+  echo "${YELLOW}ℹ️ wg-mss.service is currently inactive (normal)."
   echo "   It will be triggered automatically by wg-mss.timer every N minutes.${NC}"
 fi
 
