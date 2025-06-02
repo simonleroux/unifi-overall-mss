@@ -11,7 +11,7 @@ Automatically applies `iptables` MSS clamping rules to all `wg*` (WireGuard) int
 - 🧩 Integrates via `systemd` service and timer
 - 🧼 Fully contained in `/data/STETNET/wg-mss`
 - 🔄 Supports uninstall and safe re-install
-- 🧠 Designed for UniFi UCG Max, and similar devices
+- 🧠 Designed and tested for UniFi OS Version >4.2.12 on UCG Max and similar devices
 
 ---
 
