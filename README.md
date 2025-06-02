@@ -12,13 +12,13 @@ Automatically applies `iptables` MSS clamping rules to all `wg*` interfaces.
 ## 🚀 Install
 
 ```bash
-curl -fsSL https://github.com/SISTF/unifi-wg-mss/blob/1d67fb661a517c4a3315933c217ca90aa4521431/install.sh | sh -s -- 5
+curl -fsSL https://raw.githubusercontent.com/SISTF/unifi-wg-mss/main/install.sh | sh -s -- 5
 ```
 
 ## 🔄 Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SISTF/unifi-wg-mss/refs/heads/main/uninstall.sh | sh
+curl -fsSL https://raw.githubusercontent.com/SISTF/unifi-wg-mss/main/uninstall.sh | sh
 ```
 
 ## 💡 Notes
