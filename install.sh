@@ -11,6 +11,11 @@ INTERVAL_MIN="${1:-5}"
 
 mkdir -p "$WG_DIR"
 
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+YELLOW="\033[1;33m"
+NC="\033[0m" # No Color
+
 echo "🔧 Writing MSS clamp script..."
 cat << 'EOF' > "$WG_DIR/iptables-wg-mss.sh"
 #!/bin/bash
@@ -52,12 +57,50 @@ Description=Run MSS Clamping every $INTERVAL_MIN minutes
 
 [Timer]
 OnBootSec=30
-OnUnitActiveSec=${INTERVAL_MIN}min
+OnActiveSec=${INTERVAL_MIN}min
 Unit=$SERVICE_NAME
 
 [Install]
 WantedBy=timers.target
 EOF
+
+echo "📄 Adding status.sh..."
+cat << 'EOF' > "$WG_DIR/status.sh"
+#!/bin/sh
+
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+YELLOW="\033[1;33m"
+NC="\033[0m"
+
+echo "\n🔍 ${YELLOW}STETNET WireGuard MSS Clamping Status${NC}"
+echo "---------------------------------------"
+
+echo "\n📦 Service Status:"
+if systemctl is-active --quiet wg-mss.service; then
+  echo "${GREEN}✅ wg-mss.service is active${NC}"
+else
+  echo "${RED}❌ wg-mss.service is inactive${NC}"
+fi
+
+echo "\n⏱️ Timer Status:"
+if systemctl is-active --quiet wg-mss.timer; then
+  echo "${GREEN}✅ wg-mss.timer is active${NC}"
+else
+  echo "${RED}❌ wg-mss.timer is inactive${NC}"
+fi
+
+echo "\n🗓️ Next Timer Trigger:"
+systemctl list-timers --all | grep wg-mss || echo "${YELLOW}⚠️ Timer not scheduled${NC}"
+
+echo "\n📝 Last Service Run Log:"
+journalctl -u wg-mss.service --no-pager -n 5
+
+echo "\n📡 Current MSS iptables Rules:"
+iptables -t mangle -S FORWARD | grep TCPMSS || echo "${YELLOW}⚠️ No MSS clamping rules found${NC}"
+EOF
+
+chmod +x "$WG_DIR/status.sh"
 
 ln -sf "$WG_DIR/$SERVICE_NAME" "$SERVICE_PATH"
 ln -sf "$WG_DIR/$TIMER_NAME" "$TIMER_PATH"
@@ -70,5 +113,5 @@ systemctl start "$SERVICE_NAME"
 systemctl start "$TIMER_NAME"
 
 echo ""
-echo "✅ Installed and scheduled every $INTERVAL_MIN min."
-iptables -t mangle -S FORWARD | grep TCPMSS || echo "⚠️ No MSS rules found yet."
+echo "${GREEN}✅ Installed and scheduled every $INTERVAL_MIN min.${NC}"
+iptables -t mangle -S FORWARD | grep TCPMSS || echo "${YELLOW}⚠️ No MSS rules found yet.${NC}"
