@@ -1,4 +1,4 @@
-# STETNET WireGuard MSS Clamping for UniFi
+# STETNET WireGuard MSS Clamping for UniFi OS
 
 Automatically applies `iptables` MSS clamping rules to all `wg*` (WireGuard) interfaces on UniFi gateways. This ensures optimal TCP performance and prevents fragmentation issues across MTU-constrained VPN tunnels.
 
