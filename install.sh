@@ -57,7 +57,7 @@ Description=Run MSS Clamping every $INTERVAL_MIN minutes
 
 [Timer]
 OnBootSec=30
-OnActiveSec=${INTERVAL_MIN}min
+OnCalendar=*:0/${INTERVAL_MIN}
 Unit=$SERVICE_NAME
 
 [Install]
