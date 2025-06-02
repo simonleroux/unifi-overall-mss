@@ -39,7 +39,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 ExecStart=$WG_DIR/iptables-wg-mss.sh
-RemainAfterExit=yes
+RemainAfterExit=no
 
 [Install]
 WantedBy=multi-user.target
