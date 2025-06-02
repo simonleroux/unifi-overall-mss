@@ -1,4 +1,4 @@
-\#!/bin/sh
+#!/bin/sh
 # STETNET WireGuard MSS Clamping Installer with customizable interval
 
 WG_DIR="/data/STETNET/wg-mss"
