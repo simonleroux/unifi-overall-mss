@@ -37,6 +37,22 @@ curl -fsSL https://raw.githubusercontent.com/SISTF/unifi-wg-mss/main/uninstall.s
 
 ---
 
+## 🩺 Check Health
+
+A helper script is included:
+
+```bash
+sh /data/STETNET/wg-mss/status.sh
+```
+
+This shows:
+- Service & timer status
+- Next timer run
+- Last execution logs
+- Current MSS iptables rules
+
+---
+
 ## 🛠️ Systemd Service Controls
 
 Manage the MSS clamping service manually:
