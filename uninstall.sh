@@ -1,9 +1,9 @@
 #!/bin/sh
 # STETNET WireGuard MSS Clamping Uninstaller
 
-WG_DIR="/data/STETNET/wg-mss"
-SERVICE_NAME="wg-mss.service"
-TIMER_NAME="wg-mss.timer"
+WG_DIR="/data/STETNET/overall-mss"
+SERVICE_NAME="overall-mss.service"
+TIMER_NAME="overall-mss.timer"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 TIMER_PATH="/etc/systemd/system/$TIMER_NAME"
 
@@ -26,9 +26,6 @@ systemctl daemon-reload
 
 echo "🧹 Removing MSS iptables rules..."
 
-wg_ifaces=$(ip -o link show | awk -F': ' '{print $2}' | grep '^wg') || true
-for iface in $wg_ifaces; do
-    iptables -t mangle -D FORWARD -o "$iface" -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
-done
+iptables -t mangle -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
 echo "${GREEN}✅ Uninstalled. You may delete ${YELLOW}$WG_DIR${NC} if desired."
