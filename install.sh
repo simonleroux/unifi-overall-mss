@@ -1,49 +1,45 @@
 #!/bin/sh
-# STETNET WireGuard MSS Clamping Installer with customizable interval
+# STETNET Overall MSS Clamping Installer with customizable interval
 
-WG_DIR="/data/STETNET/wg-mss"
-SERVICE_NAME="wg-mss.service"
-TIMER_NAME="wg-mss.timer"
+MSS_DIR="/data/STETNET/overall_mss"
+SERVICE_NAME="overall_mss.service"
+TIMER_NAME="overall_mss.timer"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 TIMER_PATH="/etc/systemd/system/$TIMER_NAME"
 
 INTERVAL_MIN="${1:-5}"
 
-mkdir -p "$WG_DIR"
+mkdir -p "$MSS_DIR"
 
 GREEN="\033[1;32m"
 RED="\033[1;31m"
 YELLOW="\033[1;33m"
 NC="\033[0m" # No Color
 
-echo "🔧 Writing MSS clamp script..."
-cat << 'EOF' > "$WG_DIR/iptables-wg-mss.sh"
+echo "🔧 Writing Overall MSS clamp script..."
+cat << 'EOF' > "$MSS_DIR/iptables-overall-mss.sh"
 #!/bin/bash
 sleep 10
 
-wg_ifaces=$(ip -o link show | awk -F': ' '{print $2}' | grep '^wg') || true
-
-for iface in $wg_ifaces; do
-    iptables -w -t mangle -C FORWARD -o "$iface" -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
-    if [ $? -ne 0 ]; then
-        iptables -w -t mangle -A FORWARD -o "$iface" -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
-    fi
-done
+iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
+if [ $? -ne 0 ]; then
+    iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+fi
 
 exit 0
 EOF
-chmod +x "$WG_DIR/iptables-wg-mss.sh"
+chmod +x "$MSS_DIR/iptables-overall-mss.sh"
 
 echo "🔧 Creating systemd service..."
-cat << EOF > "$WG_DIR/$SERVICE_NAME"
+cat << EOF > "$MSS_DIR/$SERVICE_NAME"
 [Unit]
-Description=STETNET: Apply MSS Clamping for WireGuard Interfaces
+Description=STETNET: Apply Overall MSS Clamping
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=$WG_DIR/iptables-wg-mss.sh
+ExecStart=$MSS_DIR/iptables-overall-mss.sh
 RemainAfterExit=no
 
 [Install]
@@ -51,7 +47,7 @@ WantedBy=multi-user.target
 EOF
 
 echo "⏲️ Creating systemd timer with $INTERVAL_MIN min interval..."
-cat << EOF > "$WG_DIR/$TIMER_NAME"
+cat << EOF > "$MSS_DIR/$TIMER_NAME"
 [Unit]
 Description=Run MSS Clamping every $INTERVAL_MIN minutes
 
@@ -65,7 +61,7 @@ WantedBy=timers.target
 EOF
 
 echo "📄 Adding status.sh..."
-cat << 'EOF' > "$WG_DIR/status.sh"
+cat << 'EOF' > "$MSS_DIR/status.sh"
 #!/bin/sh
 
 GREEN="\033[1;32m"
@@ -73,38 +69,38 @@ RED="\033[1;31m"
 YELLOW="\033[1;33m"
 NC="\033[0m"
 
-echo "\n🔍 ${YELLOW}STETNET WireGuard MSS Clamping Status${NC}"
+echo "\n🔍 ${YELLOW}STETNET Overall MSS Clamping Status${NC}"
 echo "---------------------------------------"
 
 echo "\n📦 Service Status:"
-if systemctl is-active --quiet wg-mss.service; then
-  echo "${GREEN}✅ wg-mss.service is active${NC}"
+if systemctl is-active --quiet overall_mss.service; then
+  echo "${GREEN}✅ overall_mss.service is active${NC}"
 else
-  echo "${YELLOW}ℹ️ wg-mss.service is currently inactive (normal)."
-  echo "   It will be triggered automatically by wg-mss.timer every N minutes.${NC}"
+  echo "${YELLOW}ℹ️ overall_mss.service is currently inactive (normal)."
+  echo "   It will be triggered automatically by overall_mss.timer every N minutes.${NC}"
 fi
 
 echo "\n⏱️ Timer Status:"
-if systemctl is-active --quiet wg-mss.timer; then
-  echo "${GREEN}✅ wg-mss.timer is active${NC}"
+if systemctl is-active --quiet overall_mss.timer; then
+  echo "${GREEN}✅ overall_mss.timer is active${NC}"
 else
-  echo "${RED}❌ wg-mss.timer is inactive${NC}"
+  echo "${RED}❌ overall_mss.timer is inactive${NC}"
 fi
 
 echo "\n🗓️ Next Timer Trigger:"
-systemctl list-timers --all | grep wg-mss || echo "${YELLOW}⚠️ Timer not scheduled${NC}"
+systemctl list-timers --all | grep overall_mss || echo "${YELLOW}⚠️ Timer not scheduled${NC}"
 
 echo "\n📝 Last Service Run Log:"
-journalctl -u wg-mss.service --no-pager -n 5
+journalctl -u overall-mss.service --no-pager -n 5
 
 echo "\n📡 Current MSS iptables Rules:"
-iptables -t mangle -S FORWARD | grep TCPMSS || echo "${YELLOW}⚠️ No MSS clamping rules found${NC}"
+iptables -t mangle -S FORWARD | grep MSS || echo "${YELLOW}⚠️ No MSS clamping rules found${NC}"
 EOF
 
-chmod +x "$WG_DIR/status.sh"
+chmod +x "$MSS_DIR/status.sh"
 
-ln -sf "$WG_DIR/$SERVICE_NAME" "$SERVICE_PATH"
-ln -sf "$WG_DIR/$TIMER_NAME" "$TIMER_PATH"
+ln -sf "$MSS_DIR/$SERVICE_NAME" "$SERVICE_PATH"
+ln -sf "$MSS_DIR/$TIMER_NAME" "$TIMER_PATH"
 
 systemctl daemon-reexec
 systemctl daemon-reload
@@ -115,4 +111,4 @@ systemctl start "$TIMER_NAME"
 
 echo ""
 echo "${GREEN}✅ Installed and scheduled every $INTERVAL_MIN min.${NC}"
-iptables -t mangle -S FORWARD | grep TCPMSS || echo "${YELLOW}⚠️ No MSS rules found yet.${NC}"
+iptables -t mangle -S FORWARD | grep MSS || echo "${YELLOW}⚠️ No MSS rules found yet.${NC}"
