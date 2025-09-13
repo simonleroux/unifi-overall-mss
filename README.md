@@ -42,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/simonleroux/unifi-overall-mss/main/
 A helper script is included:
 
 ```bash
-sh /data/STETNET/overall-mss/status.sh
+sh /data/STETNET/overall_mss/status.sh
 ```
 
 This shows:
